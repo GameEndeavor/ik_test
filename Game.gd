@@ -12,6 +12,9 @@ onready var base4 = $Base4
 onready var ik4 = $Base4/Line2/IK
 onready var target = $Target
 
+var transforms # Transforms to get the rotation needed to perform IK
+var rotation_offsets # rotations needed for limb to point to the right
+
 var points = []
 
 func _ready():
@@ -27,68 +30,71 @@ func _input(event):
 			update_ik()
 
 func update_ik():
-	for i in 1:
-		points = []
-		target.global_position = get_global_mouse_position()
-		place_hand(base1, ik1, false)
-		place_hand(base4, ik4, false)
-		place_hand(base2, ik2, false, false)
-		place_hand(base3, ik3, true, true)
-		update()
+	points = []
+	target.global_position = get_global_mouse_position()
+	place_hand(base1, ik1, false)
+	place_hand(base4, ik4, true)
+	place_hand(base2, ik2, false)
+	place_hand(base3, ik3, true, true)
 
-func _draw():
-	for point in points:
-		draw_circle(point, 1, Color.magenta)
-
-var transforms
-var rotation_offsets
 func place_hand(base_node, ik_node, is_flipped, is_debug = false):
 	transforms = []
 	rotation_offsets = []
-	var t = base_node.global_scale
 	_calc_ik(base_node, ik_node, target, true, is_flipped, is_debug)
-	_apply_ik(base_node, ik_node, is_flipped)
+	_apply_ik(base_node, ik_node, is_flipped, is_debug)
 
 func _calc_ik(node, ik_node, target_node, is_forward, is_flipped, is_debug, index = 0):
-	# Recurse
-	var length = 0
-	var target = null
-	var rotation_offset = 0
+	var length = 0 # How far from target to place position
+	var target = null # What to target
+	# Allocate data to array
 	transforms.append(null)
 	rotation_offsets.append(null)
+	# If not the tip of the limb, then initialize data and recurse through first child
 	if node.get_child_count() > 0 and node != ik_node:
+		# Target the first child
 		target = node.get_child(0).global_position
-		rotation_offset = node.get_child(0).position.angle()
-		rotation_offsets[index] = rotation_offset
+		# Generate rotation offset by getting the angle to the child
+		rotation_offsets[index] = target.position.angle()
+		# Get distance between target and self for positioning
 		length = (target - node.global_position).length()
-		_calc_ik(node.get_child(0), ik_node, target_node, is_forward, is_flipped, is_debug, index + 1)
+		# Recurse to the next joint
+		_calc_ik(target, ik_node, target_node, is_forward, is_flipped, is_debug, index + 1)
 	
+	# If node is the tip of the limb
 	if node == ik_node:
+		# Rotation isn't important, place directly on the target
 		var rot = 0
 		var pos = target_node.global_position
-#		if is_flipped: pos.x = -pos.x
+		
+		# Store for applying later
 		transforms[index] = Transform2D(rot, pos)
-		if is_debug: points.append(transforms[index].origin)
 	else:
-#		var rot = -rotation_offset
+		# Get the rotation towards the next joint, checking the stored transform
+		# Due to recursion, processing happens from the tip down
 		var rot = (transforms[index+1].get_origin() - node.global_position).angle()
+		# Get the position needed to place the position at `length` distance from the next joint
 		var pos = (transforms[index+1].get_origin() - (Vector2.RIGHT * length).rotated(rot))
-		var t = Transform2D(rot, pos)
+		
 		if is_flipped:
-			t = t.scaled(Vector2(-1, 1))
-		transforms[index] = t
-		if is_debug: points.append(transforms[index].origin)
-#		if index == 1: print(transforms[index].get_rotation())
+			rot += PI
+		
+		# Store the data needed to perform the IK as a transform
+		# We're storing first so that the children don't get thrown off by relative positioning
+		transforms[index] = Transform2D(rot, pos)
 
-func _apply_ik(node, ik_node, is_flipped, index = 0):
+func _apply_ik(node, ik_node, is_flipped, is_debug = false, index = 0):
+	
 	if node != ik_node:
-#		if !is_flipped:
-		var offset = rotation_offsets[index]
-#		if is_flipped: offset *= -1
-		node.global_rotation = transforms[index].get_rotation()# - offset
-#		else:
-#			node.global_rotation = transforms[index].get_rotation() - PI
-#		if index == 0 && is_flipped:
-#			node.global_rotation += PI
-		_apply_ik(node.get_child(0), ik_node, is_flipped, index + 1)
-#	print(node.name + " : " + str(node.rotation_degrees))
+		# Once the calculation have been performed, apply rotation.
+		# We don't need to move the nodes, since movement is relative
+		# Rotation needs to be applied differently when flipped, which is half magic
+		# Rotation offsets are also applied because when used with sprites, a rotation of
+		# 0 may not point directly to the right
+		if !is_flipped:
+			node.global_rotation = transforms[index].get_rotation() - rotation_offsets[index]
+		else:
+			node.global_rotation = transforms[index].get_rotation() + rotation_offsets[index]
+			node.global_rotation = PI - node.global_rotation
+		
+		# Recurse through the limb, applying to all children
+		_apply_ik(node.get_child(0), ik_node, is_flipped, is_debug, index + 1)

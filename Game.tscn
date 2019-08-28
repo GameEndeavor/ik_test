@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://Game.gd" type="Script" id=1]
+[ext_resource path="res://InverseAngleTest.gd" type="Script" id=2]
 
 [node name="Game" type="Node2D"]
 script = ExtResource( 1 )
@@ -10,7 +11,7 @@ current = true
 zoom = Vector2( 0.25, 0.25 )
 
 [node name="Base1" type="Line2D" parent="."]
-visible = false
+editor/display_folded = true
 show_behind_parent = true
 position = Vector2( -8.6, -30.6 )
 points = PoolVector2Array( 0, 0, 13.7, 23.8 )
@@ -21,12 +22,13 @@ texture_mode = -1084227586
 position = Vector2( 13.7, 23.8 )
 points = PoolVector2Array( 0, 0, 16.1, 24.3 )
 width = 4.0
+texture_mode = -1088421888
 
 [node name="IK" type="Position2D" parent="Base1/Line2"]
 position = Vector2( 16.1, 24.3 )
 
 [node name="Base4" type="Line2D" parent="."]
-visible = false
+editor/display_folded = true
 show_behind_parent = true
 position = Vector2( -8.6, -30.6 )
 scale = Vector2( -1, 1 )
@@ -40,11 +42,13 @@ position = Vector2( 13.7, 23.8 )
 points = PoolVector2Array( 0, 0, 16.1, 24.3 )
 width = 2.0
 default_color = Color( 0.905882, 0.894118, 0.137255, 1 )
+texture_mode = 1073741824
 
 [node name="IK" type="Position2D" parent="Base4/Line2"]
 position = Vector2( 16.1, 24.3 )
 
 [node name="Base2" type="Line2D" parent="."]
+editor/display_folded = true
 show_behind_parent = true
 points = PoolVector2Array( 0, 0, 32, 0 )
 width = 4.0
@@ -56,12 +60,12 @@ position = Vector2( 32, 0 )
 points = PoolVector2Array( 0, 0, 32, 0 )
 width = 4.0
 default_color = Color( 1, 0.4, 0.4, 1 )
-texture_mode = 5
 
 [node name="IK" type="Position2D" parent="Base2/Line2"]
 position = Vector2( 32, 0 )
 
 [node name="Base3" type="Line2D" parent="."]
+editor/display_folded = true
 show_behind_parent = true
 scale = Vector2( -1, 1 )
 points = PoolVector2Array( 0, 0, 32, 0 )
@@ -74,9 +78,20 @@ position = Vector2( 32, 0 )
 points = PoolVector2Array( 0, 0, 32, 0 )
 width = 4.0
 default_color = Color( 0.462745, 1, 0.4, 1 )
+texture_mode = 0
 
 [node name="IK" type="Position2D" parent="Base3/Line2"]
 position = Vector2( 32, 0 )
 
 [node name="Target" type="Position2D" parent="."]
 position = Vector2( 49, -66 )
+
+[node name="InverseAngleTest" type="Node2D" parent="."]
+visible = false
+script = ExtResource( 2 )
+
+[node name="Flipper" type="Line2D" parent="InverseAngleTest"]
+scale = Vector2( -1, 1 )
+points = PoolVector2Array( 0, 0, 64, 0 )
+width = 2.0
+texture_mode = -1084227586
