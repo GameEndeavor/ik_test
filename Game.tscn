@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=2]
 
 [ext_resource path="res://Game.gd" type="Script" id=1]
-[ext_resource path="res://InverseAngleTest.gd" type="Script" id=2]
 
 [node name="Game" type="Node2D"]
 script = ExtResource( 1 )
@@ -85,13 +84,3 @@ position = Vector2( 32, 0 )
 
 [node name="Target" type="Position2D" parent="."]
 position = Vector2( 49, -66 )
-
-[node name="InverseAngleTest" type="Node2D" parent="."]
-visible = false
-script = ExtResource( 2 )
-
-[node name="Flipper" type="Line2D" parent="InverseAngleTest"]
-scale = Vector2( -1, 1 )
-points = PoolVector2Array( 0, 0, 64, 0 )
-width = 2.0
-texture_mode = -1084227586

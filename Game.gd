@@ -15,11 +15,6 @@ onready var target = $Target
 var transforms # Transforms to get the rotation needed to perform IK
 var rotation_offsets # rotations needed for limb to point to the right
 
-var points = []
-
-func _ready():
-	emit_signal("test_signal", "param1")
-
 func _process(delta):
 	if Input.is_mouse_button_pressed(BUTTON_RIGHT):
 		update_ik()
@@ -30,7 +25,6 @@ func _input(event):
 			update_ik()
 
 func update_ik():
-	points = []
 	target.global_position = get_global_mouse_position()
 	place_hand(base1, ik1, false)
 	place_hand(base4, ik4, true)
@@ -54,11 +48,11 @@ func _calc_ik(node, ik_node, target_node, is_forward, is_flipped, is_debug, inde
 		# Target the first child
 		target = node.get_child(0).global_position
 		# Generate rotation offset by getting the angle to the child
-		rotation_offsets[index] = target.position.angle()
+		rotation_offsets[index] = node.get_child(0).position.angle()
 		# Get distance between target and self for positioning
 		length = (target - node.global_position).length()
 		# Recurse to the next joint
-		_calc_ik(target, ik_node, target_node, is_forward, is_flipped, is_debug, index + 1)
+		_calc_ik(node.get_child(0), ik_node, target_node, is_forward, is_flipped, is_debug, index + 1)
 	
 	# If node is the tip of the limb
 	if node == ik_node:
